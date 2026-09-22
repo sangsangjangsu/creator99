@@ -38,13 +38,34 @@ if (finePointer.matches && !reducedMotion.matches) {
   heartCursor.innerHTML = '<span class="heart-glyph">♥︎</span>';
   document.body.appendChild(heartCursor);
 
+  const bunnyFollower = document.createElement('img');
+  bunnyFollower.className = 'bunny-cursor-follower';
+  bunnyFollower.src = 'assets/bunny-character.jpg';
+  bunnyFollower.alt = '';
+  bunnyFollower.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(bunnyFollower);
+
   let cursorFrame = 0;
   let cursorX = 0;
   let cursorY = 0;
+  let bunnyX = 0;
+  let bunnyY = 0;
+  let bunnyStarted = false;
   let movementTimer;
   let lastTrailTime = 0;
   let clickAnimationTimer;
   const pixelColors = ['#ff2c21', '#ffd91a', '#ff9fc8', '#76dfbd', '#ffffff'];
+
+  function animateBunny() {
+    if (bunnyStarted) {
+      bunnyX += (cursorX + 42 - bunnyX) * .14;
+      bunnyY += (cursorY + 46 - bunnyY) * .14;
+      bunnyFollower.style.transform = `translate3d(${bunnyX}px, ${bunnyY}px, 0)`;
+    }
+    window.requestAnimationFrame(animateBunny);
+  }
+
+  animateBunny();
 
   function createCursorPixel(x, y, options = {}) {
     const pixel = document.createElement('span');
@@ -79,7 +100,13 @@ if (finePointer.matches && !reducedMotion.matches) {
 
     cursorX = event.clientX;
     cursorY = event.clientY;
+    if (!bunnyStarted) {
+      bunnyX = cursorX + 42;
+      bunnyY = cursorY + 46;
+      bunnyStarted = true;
+    }
     heartCursor.classList.add('is-visible', 'is-moving');
+    bunnyFollower.classList.add('is-visible');
 
     const now = window.performance.now();
     if (now - lastTrailTime > 42) {
@@ -114,7 +141,10 @@ if (finePointer.matches && !reducedMotion.matches) {
     clickAnimationTimer = window.setTimeout(() => heartCursor.classList.remove('is-clicking'), 430);
   }, { passive: true });
 
-  document.addEventListener('mouseleave', () => heartCursor.classList.remove('is-visible'));
+  document.addEventListener('mouseleave', () => {
+    heartCursor.classList.remove('is-visible');
+    bunnyFollower.classList.remove('is-visible');
+  });
 }
 
 // 시냇물 배경음, 클릭 게임음, 드래그 슬라임음을 Web Audio로 생성
@@ -137,7 +167,13 @@ let lastSquishTime = 0;
 
 function updateSoundButton() {
   soundToggle.setAttribute('aria-pressed', String(soundEnabled));
-  soundToggle.textContent = soundEnabled ? '♫ SOUND ON' : '♫ SOUND OFF';
+  if (!soundEnabled) {
+    soundToggle.textContent = '♫ SOUND OFF';
+  } else if (!audioContext) {
+    soundToggle.textContent = '♫ 소리 시작';
+  } else {
+    soundToggle.textContent = '♫ SOUND ON';
+  }
 }
 
 function createStreamSound() {
@@ -245,7 +281,12 @@ function playSlimeSquish() {
 updateSoundButton();
 
 document.addEventListener('pointerdown', (event) => {
-  if (soundEnabled) ensureAudio();
+  const isSoundButton = event.target instanceof Element && event.target.closest('.sound-toggle');
+  if (soundEnabled && !isSoundButton) {
+    ensureAudio().then((ready) => {
+      if (ready) updateSoundButton();
+    });
+  }
   if (event.button !== 0 || (event.pointerType && event.pointerType !== 'mouse' && event.pointerType !== 'pen')) return;
   pointerStart = { id: event.pointerId, x: event.clientX, y: event.clientY };
   dragActive = false;
@@ -282,6 +323,16 @@ document.addEventListener('click', (event) => {
 });
 
 soundToggle.addEventListener('click', async () => {
+  if (soundEnabled && !audioContext) {
+    const ready = await ensureAudio();
+    if (ready) {
+      setMasterVolume(.72);
+      updateSoundButton();
+      playPopTriplet();
+    }
+    return;
+  }
+
   soundEnabled = !soundEnabled;
   window.localStorage.setItem('portfolio-sound', soundEnabled ? 'on' : 'off');
   updateSoundButton();

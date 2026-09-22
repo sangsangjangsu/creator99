@@ -258,6 +258,24 @@ h1, h2, h3, .brand, .site-nav a, .section-title, .footer-title {
     transition: opacity .12s ease;
   }
   .pixel-heart-cursor.is-visible { opacity: 1; }
+  .bunny-cursor-follower {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9996;
+    width: 62px;
+    height: 76px;
+    object-fit: cover;
+    object-position: 50% 62%;
+    pointer-events: none;
+    opacity: 0;
+    border: 2px solid var(--ink);
+    border-radius: 18px 18px 24px 24px;
+    box-shadow: 3px 3px 0 rgba(25,25,25,.85);
+    transition: opacity .16s ease;
+    will-change: transform;
+  }
+  .bunny-cursor-follower.is-visible { opacity: 1; }
   .heart-glyph {
     display: block;
     color: #ff2c21;
@@ -378,4 +396,5 @@ h1, h2, h3, .brand, .site-nav a, .section-title, .footer-title {
   html.has-heart-cursor, html.has-heart-cursor a, html.has-heart-cursor button { cursor: auto !important; }
   .pixel-heart-cursor { display: none; }
   .cursor-pixel { display: none; }
+  .bunny-cursor-follower { display: none; }
 }

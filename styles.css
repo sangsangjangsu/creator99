@@ -283,7 +283,19 @@ h1, h2, h3, .brand, .site-nav a, .section-title, .footer-title {
     transform: translate(-50%, -50%);
   }
   .cursor-pixel.is-burst { animation: pixel-scatter .72s steps(7, end) forwards; }
-  .cursor-pixel.is-trail { animation: pixel-trail .55s steps(5, end) forwards; }
+  .cursor-pixel.is-trail {
+    width: auto;
+    height: auto;
+    background: transparent;
+    box-shadow: none;
+    color: var(--pixel-color);
+    font-family: "Courier New", monospace;
+    font-size: calc(var(--pixel-size) * 2.4);
+    font-weight: 900;
+    line-height: 1;
+    text-shadow: 1px 0 0 var(--ink), -1px 0 0 var(--ink), 0 1px 0 var(--ink), 0 -1px 0 var(--ink);
+    animation: pixel-trail .65s steps(6, end) forwards;
+  }
   @keyframes pixel-heartbeat {
     0%, 100% { transform: scale(1) rotate(-5deg); }
     45% { transform: scale(1.32) rotate(3deg); }

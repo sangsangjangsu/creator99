@@ -52,6 +52,7 @@ if (finePointer.matches && !reducedMotion.matches) {
     const distance = options.distance ?? 18 + Math.random() * 34;
     const size = options.size ?? 4 + Math.floor(Math.random() * 4);
     pixel.className = `cursor-pixel ${options.trail ? 'is-trail' : 'is-burst'}`;
+    if (options.trail) pixel.textContent = '♥︎';
     pixel.style.left = `${x}px`;
     pixel.style.top = `${y}px`;
     pixel.style.setProperty('--pixel-size', `${size}px`);

@@ -52,6 +52,7 @@ if (finePointer.matches && !reducedMotion.matches) {
   let movementTimer;
   let lastTrailTime = 0;
   let clickAnimationTimer;
+  let bunnyWaveTimer;
   const pixelColors = ['#ff4fa3', '#ff79ba', '#ff9fc8', '#ffd0e7', '#ffffff'];
 
   function animateBunny() {
@@ -135,8 +136,13 @@ if (finePointer.matches && !reducedMotion.matches) {
     heartCursor.classList.remove('is-clicking');
     void heartCursor.offsetWidth;
     heartCursor.classList.add('is-clicking');
+    bunnyFollower.classList.remove('is-waving');
+    void bunnyFollower.offsetWidth;
+    bunnyFollower.classList.add('is-waving');
     window.clearTimeout(clickAnimationTimer);
+    window.clearTimeout(bunnyWaveTimer);
     clickAnimationTimer = window.setTimeout(() => heartCursor.classList.remove('is-clicking'), 430);
+    bunnyWaveTimer = window.setTimeout(() => bunnyFollower.classList.remove('is-waving'), 800);
   }, { passive: true });
 
   document.addEventListener('mouseleave', () => {

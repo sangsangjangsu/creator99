@@ -332,8 +332,8 @@ h1, h2, h3, .brand, .site-nav a, .section-title, .footer-title {
   }
   .bunny-cursor-follower.is-visible {
     opacity: 1;
-    animation: bunny-wave .78s steps(1, end) infinite;
   }
+  .bunny-cursor-follower.is-waving { animation: bunny-wave .78s steps(1, end) 1; }
   .heart-glyph {
     display: block;
     color: #ff62ad;

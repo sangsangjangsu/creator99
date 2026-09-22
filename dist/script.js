@@ -158,8 +158,9 @@ document.body.appendChild(soundToggle);
 let soundEnabled = window.localStorage.getItem('portfolio-sound') !== 'off';
 let audioContext;
 let masterGain;
-let cuteSoundTimer;
-let cuteSoundStep = 0;
+let streamSource;
+let streamGain;
+let waterBubbleTimer;
 let pointerStart;
 let dragActive = false;
 let lastDragTime = -1000;
@@ -176,51 +177,74 @@ function updateSoundButton() {
   }
 }
 
-function playCuteBackgroundPhrase() {
+function playWaterBubble() {
   if (!audioContext || !soundEnabled || document.hidden) return;
-
-  const melodies = [
-    [523.25, 659.25, 783.99],
-    [587.33, 698.46, 880],
-    [659.25, 783.99, 987.77],
-    [523.25, 698.46, 830.61],
-  ];
-  const notes = melodies[cuteSoundStep % melodies.length];
   const start = audioContext.currentTime + .03;
+  const bubbleCount = Math.random() > .68 ? 2 : 1;
 
-  notes.forEach((frequency, index) => {
-    const time = start + index * .18;
-    const bell = audioContext.createOscillator();
-    const sparkle = audioContext.createOscillator();
+  for (let index = 0; index < bubbleCount; index += 1) {
+    const time = start + index * .13;
+    const bubble = audioContext.createOscillator();
     const gain = audioContext.createGain();
     const filter = audioContext.createBiquadFilter();
 
-    bell.type = 'sine';
-    bell.frequency.setValueAtTime(frequency, time);
-    sparkle.type = 'triangle';
-    sparkle.frequency.setValueAtTime(frequency * 2, time);
+    bubble.type = 'sine';
+    bubble.frequency.setValueAtTime(780 + Math.random() * 340, time);
+    bubble.frequency.exponentialRampToValueAtTime(430 + Math.random() * 120, time + .18);
     filter.type = 'lowpass';
-    filter.frequency.value = 2400;
+    filter.frequency.value = 1800;
 
     gain.gain.setValueAtTime(.0001, time);
-    gain.gain.exponentialRampToValueAtTime(.026, time + .025);
-    gain.gain.exponentialRampToValueAtTime(.0001, time + .48);
+    gain.gain.exponentialRampToValueAtTime(.022, time + .018);
+    gain.gain.exponentialRampToValueAtTime(.0001, time + .22);
 
-    bell.connect(gain);
-    sparkle.connect(gain);
+    bubble.connect(gain);
     gain.connect(filter).connect(masterGain);
-    bell.start(time);
-    sparkle.start(time);
-    bell.stop(time + .5);
-    sparkle.stop(time + .5);
-  });
-
-  cuteSoundStep += 1;
+    bubble.start(time);
+    bubble.stop(time + .24);
+  }
 }
 
-function createCuteBackgroundSound() {
-  playCuteBackgroundPhrase();
-  cuteSoundTimer = window.setInterval(playCuteBackgroundPhrase, 2900);
+function createCuteStreamSound() {
+  const frameCount = audioContext.sampleRate * 4;
+  const streamBuffer = audioContext.createBuffer(1, frameCount, audioContext.sampleRate);
+  const streamData = streamBuffer.getChannelData(0);
+  let flowingSample = 0;
+
+  for (let index = 0; index < frameCount; index += 1) {
+    const ripple = Math.random() * 2 - 1;
+    flowingSample = (flowingSample + ripple * .045) / 1.045;
+    streamData[index] = flowingSample * 2.4 + ripple * .055;
+  }
+
+  streamSource = audioContext.createBufferSource();
+  streamSource.buffer = streamBuffer;
+  streamSource.loop = true;
+
+  const highPass = audioContext.createBiquadFilter();
+  const lowPass = audioContext.createBiquadFilter();
+  highPass.type = 'highpass';
+  highPass.frequency.value = 120;
+  lowPass.type = 'lowpass';
+  lowPass.frequency.value = 1450;
+  lowPass.Q.value = .55;
+
+  streamGain = audioContext.createGain();
+  streamGain.gain.value = .034;
+
+  const flowPulse = audioContext.createOscillator();
+  const flowDepth = audioContext.createGain();
+  flowPulse.type = 'sine';
+  flowPulse.frequency.value = .24;
+  flowDepth.gain.value = .007;
+  flowPulse.connect(flowDepth).connect(streamGain.gain);
+
+  streamSource.connect(highPass).connect(lowPass).connect(streamGain).connect(masterGain);
+  streamSource.start();
+  flowPulse.start();
+
+  playWaterBubble();
+  waterBubbleTimer = window.setInterval(playWaterBubble, 2350);
 }
 
 async function ensureAudio() {
@@ -231,7 +255,7 @@ async function ensureAudio() {
     masterGain = audioContext.createGain();
     masterGain.gain.value = soundEnabled ? .72 : 0;
     masterGain.connect(audioContext.destination);
-    createCuteBackgroundSound();
+    createCuteStreamSound();
   }
 
   if (audioContext.state === 'suspended') await audioContext.resume();

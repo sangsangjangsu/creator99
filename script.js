@@ -158,8 +158,8 @@ document.body.appendChild(soundToggle);
 let soundEnabled = window.localStorage.getItem('portfolio-sound') !== 'off';
 let audioContext;
 let masterGain;
-let streamGain;
-let streamSource;
+let cuteSoundTimer;
+let cuteSoundStep = 0;
 let pointerStart;
 let dragActive = false;
 let lastDragTime = -1000;
@@ -176,39 +176,51 @@ function updateSoundButton() {
   }
 }
 
-function createStreamSound() {
-  const frameCount = audioContext.sampleRate * 2;
-  const buffer = audioContext.createBuffer(1, frameCount, audioContext.sampleRate);
-  const data = buffer.getChannelData(0);
-  let flowingSample = 0;
+function playCuteBackgroundPhrase() {
+  if (!audioContext || !soundEnabled || document.hidden) return;
 
-  for (let index = 0; index < frameCount; index += 1) {
-    flowingSample = (flowingSample + (Math.random() * 2 - 1) * .025) / 1.025;
-    data[index] = flowingSample * 2.8;
-  }
+  const melodies = [
+    [523.25, 659.25, 783.99],
+    [587.33, 698.46, 880],
+    [659.25, 783.99, 987.77],
+    [523.25, 698.46, 830.61],
+  ];
+  const notes = melodies[cuteSoundStep % melodies.length];
+  const start = audioContext.currentTime + .03;
 
-  streamSource = audioContext.createBufferSource();
-  streamSource.buffer = buffer;
-  streamSource.loop = true;
+  notes.forEach((frequency, index) => {
+    const time = start + index * .18;
+    const bell = audioContext.createOscillator();
+    const sparkle = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    const filter = audioContext.createBiquadFilter();
 
-  const streamFilter = audioContext.createBiquadFilter();
-  streamFilter.type = 'lowpass';
-  streamFilter.frequency.value = 1350;
-  streamFilter.Q.value = .45;
+    bell.type = 'sine';
+    bell.frequency.setValueAtTime(frequency, time);
+    sparkle.type = 'triangle';
+    sparkle.frequency.setValueAtTime(frequency * 2, time);
+    filter.type = 'lowpass';
+    filter.frequency.value = 2400;
 
-  streamGain = audioContext.createGain();
-  streamGain.gain.value = .032;
+    gain.gain.setValueAtTime(.0001, time);
+    gain.gain.exponentialRampToValueAtTime(.026, time + .025);
+    gain.gain.exponentialRampToValueAtTime(.0001, time + .48);
 
-  const ripple = audioContext.createOscillator();
-  const rippleDepth = audioContext.createGain();
-  ripple.type = 'sine';
-  ripple.frequency.value = .16;
-  rippleDepth.gain.value = .011;
-  ripple.connect(rippleDepth).connect(streamGain.gain);
+    bell.connect(gain);
+    sparkle.connect(gain);
+    gain.connect(filter).connect(masterGain);
+    bell.start(time);
+    sparkle.start(time);
+    bell.stop(time + .5);
+    sparkle.stop(time + .5);
+  });
 
-  streamSource.connect(streamFilter).connect(streamGain).connect(masterGain);
-  streamSource.start();
-  ripple.start();
+  cuteSoundStep += 1;
+}
+
+function createCuteBackgroundSound() {
+  playCuteBackgroundPhrase();
+  cuteSoundTimer = window.setInterval(playCuteBackgroundPhrase, 2900);
 }
 
 async function ensureAudio() {
@@ -219,7 +231,7 @@ async function ensureAudio() {
     masterGain = audioContext.createGain();
     masterGain.gain.value = soundEnabled ? .72 : 0;
     masterGain.connect(audioContext.destination);
-    createStreamSound();
+    createCuteBackgroundSound();
   }
 
   if (audioContext.state === 'suspended') await audioContext.resume();

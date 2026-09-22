@@ -339,7 +339,7 @@ h1, h2, h3, .brand, .site-nav a, .section-title, .footer-title {
     opacity: 1;
   }
   .bunny-cursor-follower.is-waving .bunny-sprite { animation: bunny-wave .78s steps(1, end) 1; }
-  .bunny-cursor-follower.is-idle .bunny-sprite { animation: bunny-ready .95s ease-in-out infinite; }
+  .bunny-cursor-follower.is-idle .bunny-sprite { animation: bunny-ready 2.8s cubic-bezier(.45, 0, .25, 1) infinite; }
   .bunny-love-bubble {
     position: absolute;
     top: -24px;
@@ -425,9 +425,10 @@ h1, h2, h3, .brand, .site-nav a, .section-title, .footer-title {
     50%, 74% { background-position: 100% 0; }
   }
   @keyframes bunny-ready {
-    0%, 12%, 28%, 44%, 100% { transform: translateY(0) scale(1); }
-    6%, 22%, 38% { transform: translateY(-5px) scale(.98, 1.04); }
-    15%, 31%, 47% { transform: translateY(1px) scale(1.05, .94); }
+    0%, 18%, 36%, 54%, 100% { transform: translateY(0) scale(1); }
+    4%, 22%, 40% { transform: translateY(1px) scale(1.07, .93); }
+    9%, 27%, 45% { transform: translateY(-7px) scale(.96, 1.07); }
+    14%, 32%, 50% { transform: translateY(1px) scale(1.09, .91); }
   }
   @keyframes bunny-love-pop {
     0% { opacity: 0; transform: translate(-8px, 7px) scale(.72); }

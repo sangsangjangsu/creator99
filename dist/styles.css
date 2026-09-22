@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Montserrat:wght@700;800;900&display=swap');
 
 @font-face { font-family: 'SUIT'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-Thin.woff2') format('woff2'); font-weight: 100; font-display: swap; }
 @font-face { font-family: 'SUIT'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_suit@1.0/SUIT-ExtraLight.woff2') format('woff2'); font-weight: 200; font-display: swap; }
@@ -42,6 +42,11 @@ img { display: block; max-width: 100%; }
 .skip-link { position: fixed; top: -80px; left: 18px; z-index: 100; padding: 10px 16px; background: var(--ink); color: #fff; }
 .skip-link:focus { top: 18px; }
 .wrap { width: min(calc(100% - 40px), var(--max)); margin-inline: auto; }
+h1, h2, h3, .brand, .site-nav a, .section-title, .footer-title {
+  font-family: "Bagel Fat One", "SUIT", sans-serif;
+  font-weight: 400;
+  letter-spacing: -.035em;
+}
 .eyebrow { margin: 0 0 12px; font-family: Montserrat, sans-serif; font-size: .76rem; font-weight: 900; letter-spacing: .15em; text-transform: uppercase; }
 .section-title { margin: 0; font-size: clamp(2rem, 5vw, 4.5rem); line-height: 1.02; letter-spacing: -.065em; font-weight: 900; }
 .section-copy { max-width: 580px; margin: 18px 0 0; color: #4a4a4f; }
@@ -217,6 +222,26 @@ img { display: block; max-width: 100%; }
 .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
 .reveal.visible { opacity: 1; transform: none; }
 
+/* 배경음과 효과음을 켜고 끄는 고정 버튼 */
+.sound-toggle {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 9998;
+  min-height: 44px;
+  padding: 0 16px;
+  border: var(--line);
+  border-radius: 999px;
+  background: var(--yellow);
+  color: var(--ink);
+  font-size: .78rem;
+  font-weight: 900;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: transform .2s, background .2s;
+}
+.sound-toggle:hover, .sound-toggle:focus-visible { transform: translate(-2px, -2px); }
+.sound-toggle[aria-pressed="false"] { background: #fff; }
+
 /* 데스크톱 마우스를 따라 움직이는 픽셀 하트 커서 */
 @media (pointer: fine) {
   html.has-heart-cursor,
@@ -244,10 +269,40 @@ img { display: block; max-width: 100%; }
     transform-origin: center;
   }
   .pixel-heart-cursor.is-moving .heart-glyph { animation: pixel-heartbeat .48s steps(2, end) infinite; }
+  .pixel-heart-cursor.is-clicking .heart-glyph { animation: heart-flash .42s steps(3, end); }
+  .cursor-pixel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9997;
+    width: var(--pixel-size);
+    height: var(--pixel-size);
+    pointer-events: none;
+    background: var(--pixel-color);
+    box-shadow: 1px 1px 0 var(--ink);
+    transform: translate(-50%, -50%);
+  }
+  .cursor-pixel.is-burst { animation: pixel-scatter .72s steps(7, end) forwards; }
+  .cursor-pixel.is-trail { animation: pixel-trail .55s steps(5, end) forwards; }
   @keyframes pixel-heartbeat {
     0%, 100% { transform: scale(1) rotate(-5deg); }
     45% { transform: scale(1.32) rotate(3deg); }
     70% { transform: scale(.92) rotate(-2deg); }
+  }
+  @keyframes heart-flash {
+    0% { transform: scale(1); filter: brightness(1); }
+    35% { transform: scale(1.75) rotate(8deg); filter: brightness(1.7) drop-shadow(0 0 8px #fff) drop-shadow(0 0 14px var(--yellow)); }
+    70% { transform: scale(.78) rotate(-7deg); filter: brightness(1.3) drop-shadow(0 0 5px var(--pink)); }
+    100% { transform: scale(1); filter: brightness(1); }
+  }
+  @keyframes pixel-scatter {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0); }
+    65% { opacity: .9; }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--pixel-x)), calc(-50% + var(--pixel-y))) scale(0) rotate(var(--pixel-turn)); }
+  }
+  @keyframes pixel-trail {
+    0% { opacity: .9; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--pixel-x)), calc(-50% + var(--pixel-y))) scale(.2); }
   }
 }
 
@@ -301,6 +356,7 @@ img { display: block; max-width: 100%; }
   .timeline-item { border-right: 0; }
   .footer-inner { display: block; }
   .footer-meta { margin-top: 36px; text-align: left; }
+  .sound-toggle { right: 14px; bottom: 14px; }
 }
 
 /* 사용자가 움직임 감소를 설정한 경우 애니메이션 최소화 */
@@ -309,4 +365,5 @@ img { display: block; max-width: 100%; }
   .reveal { opacity: 1; transform: none; }
   html.has-heart-cursor, html.has-heart-cursor a, html.has-heart-cursor button { cursor: auto !important; }
   .pixel-heart-cursor { display: none; }
+  .cursor-pixel { display: none; }
 }

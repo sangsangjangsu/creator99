@@ -42,6 +42,36 @@ if (finePointer.matches && !reducedMotion.matches) {
   let cursorX = 0;
   let cursorY = 0;
   let movementTimer;
+  let lastTrailTime = 0;
+  let clickAnimationTimer;
+  const pixelColors = ['#ff2c21', '#ffd91a', '#ff9fc8', '#76dfbd', '#ffffff'];
+
+  function createCursorPixel(x, y, options = {}) {
+    const pixel = document.createElement('span');
+    const angle = options.angle ?? Math.random() * Math.PI * 2;
+    const distance = options.distance ?? 18 + Math.random() * 34;
+    const size = options.size ?? 4 + Math.floor(Math.random() * 4);
+    pixel.className = `cursor-pixel ${options.trail ? 'is-trail' : 'is-burst'}`;
+    pixel.style.left = `${x}px`;
+    pixel.style.top = `${y}px`;
+    pixel.style.setProperty('--pixel-size', `${size}px`);
+    pixel.style.setProperty('--pixel-color', pixelColors[Math.floor(Math.random() * pixelColors.length)]);
+    pixel.style.setProperty('--pixel-x', `${Math.cos(angle) * distance}px`);
+    pixel.style.setProperty('--pixel-y', `${Math.sin(angle) * distance + (options.trail ? 13 : 0)}px`);
+    pixel.style.setProperty('--pixel-turn', `${Math.round(Math.random() * 180 - 90)}deg`);
+    document.body.appendChild(pixel);
+    pixel.addEventListener('animationend', () => pixel.remove(), { once: true });
+  }
+
+  function createHeartBurst(x, y) {
+    for (let index = 0; index < 18; index += 1) {
+      createCursorPixel(x, y, {
+        angle: (Math.PI * 2 * index) / 18 + Math.random() * .18,
+        distance: 28 + Math.random() * 46,
+        size: 4 + (index % 3) * 2,
+      });
+    }
+  }
 
   window.addEventListener('pointermove', (event) => {
     if (event.pointerType && event.pointerType !== 'mouse' && event.pointerType !== 'pen') return;
@@ -49,6 +79,17 @@ if (finePointer.matches && !reducedMotion.matches) {
     cursorX = event.clientX;
     cursorY = event.clientY;
     heartCursor.classList.add('is-visible', 'is-moving');
+
+    const now = window.performance.now();
+    if (now - lastTrailTime > 42) {
+      createCursorPixel(cursorX, cursorY, {
+        trail: true,
+        angle: Math.PI / 2 + (Math.random() - .5) * 1.8,
+        distance: 10 + Math.random() * 18,
+        size: 3 + Math.floor(Math.random() * 4),
+      });
+      lastTrailTime = now;
+    }
 
     if (!cursorFrame) {
       cursorFrame = window.requestAnimationFrame(() => {
@@ -62,5 +103,199 @@ if (finePointer.matches && !reducedMotion.matches) {
     movementTimer = window.setTimeout(() => heartCursor.classList.remove('is-moving'), 140);
   }, { passive: true });
 
+  window.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || (event.pointerType && event.pointerType !== 'mouse' && event.pointerType !== 'pen')) return;
+    createHeartBurst(event.clientX, event.clientY);
+    heartCursor.classList.remove('is-clicking');
+    void heartCursor.offsetWidth;
+    heartCursor.classList.add('is-clicking');
+    window.clearTimeout(clickAnimationTimer);
+    clickAnimationTimer = window.setTimeout(() => heartCursor.classList.remove('is-clicking'), 430);
+  }, { passive: true });
+
   document.addEventListener('mouseleave', () => heartCursor.classList.remove('is-visible'));
 }
+
+// 시냇물 배경음, 클릭 게임음, 드래그 슬라임음을 Web Audio로 생성
+const AudioEngine = window.AudioContext || window.webkitAudioContext;
+const soundToggle = document.createElement('button');
+soundToggle.className = 'sound-toggle';
+soundToggle.type = 'button';
+soundToggle.setAttribute('aria-label', '사이트 사운드 켜기 또는 끄기');
+document.body.appendChild(soundToggle);
+
+let soundEnabled = window.localStorage.getItem('portfolio-sound') !== 'off';
+let audioContext;
+let masterGain;
+let streamGain;
+let streamSource;
+let pointerStart;
+let dragActive = false;
+let lastDragTime = -1000;
+let lastSquishTime = 0;
+
+function updateSoundButton() {
+  soundToggle.setAttribute('aria-pressed', String(soundEnabled));
+  soundToggle.textContent = soundEnabled ? '♫ SOUND ON' : '♫ SOUND OFF';
+}
+
+function createStreamSound() {
+  const frameCount = audioContext.sampleRate * 2;
+  const buffer = audioContext.createBuffer(1, frameCount, audioContext.sampleRate);
+  const data = buffer.getChannelData(0);
+  let flowingSample = 0;
+
+  for (let index = 0; index < frameCount; index += 1) {
+    flowingSample = (flowingSample + (Math.random() * 2 - 1) * .025) / 1.025;
+    data[index] = flowingSample * 2.8;
+  }
+
+  streamSource = audioContext.createBufferSource();
+  streamSource.buffer = buffer;
+  streamSource.loop = true;
+
+  const streamFilter = audioContext.createBiquadFilter();
+  streamFilter.type = 'lowpass';
+  streamFilter.frequency.value = 1350;
+  streamFilter.Q.value = .45;
+
+  streamGain = audioContext.createGain();
+  streamGain.gain.value = .032;
+
+  const ripple = audioContext.createOscillator();
+  const rippleDepth = audioContext.createGain();
+  ripple.type = 'sine';
+  ripple.frequency.value = .16;
+  rippleDepth.gain.value = .011;
+  ripple.connect(rippleDepth).connect(streamGain.gain);
+
+  streamSource.connect(streamFilter).connect(streamGain).connect(masterGain);
+  streamSource.start();
+  ripple.start();
+}
+
+async function ensureAudio() {
+  if (!AudioEngine) return false;
+
+  if (!audioContext) {
+    audioContext = new AudioEngine();
+    masterGain = audioContext.createGain();
+    masterGain.gain.value = soundEnabled ? .72 : 0;
+    masterGain.connect(audioContext.destination);
+    createStreamSound();
+  }
+
+  if (audioContext.state === 'suspended') await audioContext.resume();
+  return true;
+}
+
+function setMasterVolume(volume) {
+  if (!audioContext || !masterGain) return;
+  masterGain.gain.cancelScheduledValues(audioContext.currentTime);
+  masterGain.gain.setTargetAtTime(volume, audioContext.currentTime, .04);
+}
+
+function playPopTriplet() {
+  if (!audioContext || !soundEnabled) return;
+  const start = audioContext.currentTime;
+
+  [520, 680, 840].forEach((frequency, index) => {
+    const time = start + index * .085;
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.type = 'square';
+    oscillator.frequency.setValueAtTime(frequency, time);
+    oscillator.frequency.exponentialRampToValueAtTime(frequency * .72, time + .09);
+    gain.gain.setValueAtTime(.0001, time);
+    gain.gain.exponentialRampToValueAtTime(.07, time + .008);
+    gain.gain.exponentialRampToValueAtTime(.0001, time + .105);
+    oscillator.connect(gain).connect(masterGain);
+    oscillator.start(time);
+    oscillator.stop(time + .12);
+  });
+}
+
+function playSlimeSquish() {
+  if (!audioContext || !soundEnabled) return;
+  const start = audioContext.currentTime;
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  const wobble = audioContext.createOscillator();
+  const wobbleDepth = audioContext.createGain();
+
+  oscillator.type = 'sine';
+  oscillator.frequency.setValueAtTime(210, start);
+  oscillator.frequency.exponentialRampToValueAtTime(72, start + .18);
+  wobble.type = 'sine';
+  wobble.frequency.value = 24;
+  wobbleDepth.gain.value = 28;
+  wobble.connect(wobbleDepth).connect(oscillator.frequency);
+
+  gain.gain.setValueAtTime(.0001, start);
+  gain.gain.exponentialRampToValueAtTime(.11, start + .02);
+  gain.gain.exponentialRampToValueAtTime(.0001, start + .2);
+  oscillator.connect(gain).connect(masterGain);
+  oscillator.start(start);
+  wobble.start(start);
+  oscillator.stop(start + .22);
+  wobble.stop(start + .22);
+}
+
+updateSoundButton();
+
+document.addEventListener('pointerdown', (event) => {
+  if (soundEnabled) ensureAudio();
+  if (event.button !== 0 || (event.pointerType && event.pointerType !== 'mouse' && event.pointerType !== 'pen')) return;
+  pointerStart = { id: event.pointerId, x: event.clientX, y: event.clientY };
+  dragActive = false;
+});
+
+document.addEventListener('pointermove', (event) => {
+  if (!pointerStart || pointerStart.id !== event.pointerId) return;
+  const distance = Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y);
+  if (distance < 7) return;
+
+  dragActive = true;
+  const now = window.performance.now();
+  if (now - lastSquishTime > 115) {
+    playSlimeSquish();
+    lastSquishTime = now;
+  }
+}, { passive: true });
+
+function finishPointer() {
+  if (dragActive) lastDragTime = window.performance.now();
+  pointerStart = undefined;
+  dragActive = false;
+}
+
+document.addEventListener('pointerup', finishPointer);
+document.addEventListener('pointercancel', finishPointer);
+
+document.addEventListener('click', (event) => {
+  if (event.target.closest('.sound-toggle')) return;
+  if (window.performance.now() - lastDragTime < 320) return;
+  ensureAudio().then((ready) => {
+    if (ready) playPopTriplet();
+  });
+});
+
+soundToggle.addEventListener('click', async () => {
+  soundEnabled = !soundEnabled;
+  window.localStorage.setItem('portfolio-sound', soundEnabled ? 'on' : 'off');
+  updateSoundButton();
+
+  if (soundEnabled) {
+    const ready = await ensureAudio();
+    if (ready) {
+      setMasterVolume(.72);
+      playPopTriplet();
+    }
+  } else {
+    setMasterVolume(0);
+  }
+});
+
+document.addEventListener('visibilitychange', () => {
+  setMasterVolume(document.hidden || !soundEnabled ? 0 : .72);
+});

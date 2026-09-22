@@ -41,7 +41,7 @@ if (finePointer.matches && !reducedMotion.matches) {
   const bunnyFollower = document.createElement('div');
   bunnyFollower.className = 'bunny-cursor-follower';
   bunnyFollower.setAttribute('aria-hidden', 'true');
-  bunnyFollower.innerHTML = '<span class="bunny-love-bubble">사랑해 ♥</span>';
+  bunnyFollower.innerHTML = '<span class="bunny-sprite"></span><span class="bunny-love-bubble">사랑해 ♥</span>';
   document.body.appendChild(bunnyFollower);
 
   let cursorFrame = 0;
@@ -55,6 +55,7 @@ if (finePointer.matches && !reducedMotion.matches) {
   let clickAnimationTimer;
   let bunnyWaveTimer;
   let bunnyBubbleTimer;
+  let bunnyIdleTimer;
   const pixelColors = ['#ff4fa3', '#ff79ba', '#ff9fc8', '#ffd0e7', '#ffffff'];
 
   function animateBunny() {
@@ -67,6 +68,15 @@ if (finePointer.matches && !reducedMotion.matches) {
   }
 
   animateBunny();
+
+  function scheduleBunnyIdle(delay = 240) {
+    window.clearTimeout(bunnyIdleTimer);
+    bunnyIdleTimer = window.setTimeout(() => {
+      if (bunnyStarted && !bunnyFollower.classList.contains('is-waving')) {
+        bunnyFollower.classList.add('is-idle');
+      }
+    }, delay);
+  }
 
   function createCursorPixel(x, y, options = {}) {
     const pixel = document.createElement('span');
@@ -108,6 +118,8 @@ if (finePointer.matches && !reducedMotion.matches) {
     }
     heartCursor.classList.add('is-visible', 'is-moving');
     bunnyFollower.classList.add('is-visible');
+    bunnyFollower.classList.remove('is-idle');
+    scheduleBunnyIdle();
 
     const now = window.performance.now();
     if (now - lastTrailTime > 42) {
@@ -135,6 +147,7 @@ if (finePointer.matches && !reducedMotion.matches) {
   window.addEventListener('pointerdown', (event) => {
     if (event.button !== 0 || (event.pointerType && event.pointerType !== 'mouse' && event.pointerType !== 'pen')) return;
     createHeartBurst(event.clientX, event.clientY);
+    bunnyFollower.classList.remove('is-idle');
     heartCursor.classList.remove('is-clicking');
     void heartCursor.offsetWidth;
     heartCursor.classList.add('is-clicking');
@@ -146,13 +159,17 @@ if (finePointer.matches && !reducedMotion.matches) {
     window.clearTimeout(bunnyWaveTimer);
     window.clearTimeout(bunnyBubbleTimer);
     clickAnimationTimer = window.setTimeout(() => heartCursor.classList.remove('is-clicking'), 430);
-    bunnyWaveTimer = window.setTimeout(() => bunnyFollower.classList.remove('is-waving'), 800);
+    bunnyWaveTimer = window.setTimeout(() => {
+      bunnyFollower.classList.remove('is-waving');
+      scheduleBunnyIdle(80);
+    }, 800);
     bunnyBubbleTimer = window.setTimeout(() => bunnyFollower.classList.remove('is-loving'), 1100);
   }, { passive: true });
 
   document.addEventListener('mouseleave', () => {
     heartCursor.classList.remove('is-visible');
-    bunnyFollower.classList.remove('is-visible');
+    bunnyFollower.classList.remove('is-visible', 'is-idle');
+    window.clearTimeout(bunnyIdleTimer);
   });
 }
 

@@ -54,7 +54,7 @@ if (finePointer.matches && !reducedMotion.matches) {
   let movementTimer;
   let lastTrailTime = 0;
   let clickAnimationTimer;
-  const pixelColors = ['#ff2c21', '#ffd91a', '#ff9fc8', '#76dfbd', '#ffffff'];
+  const pixelColors = ['#ff4fa3', '#ff79ba', '#ff9fc8', '#ffd0e7', '#ffffff'];
 
   function animateBunny() {
     if (bunnyStarted) {

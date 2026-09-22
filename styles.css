@@ -317,19 +317,23 @@ h1, h2, h3, .brand, .site-nav a, .section-title, .footer-title {
     top: 0;
     left: 0;
     z-index: 9996;
-    width: 62px;
-    height: 76px;
-    object-fit: cover;
-    object-position: 50% 62%;
+    width: 72px;
+    height: 72px;
     pointer-events: none;
     opacity: 0;
-    border: 2px solid var(--ink);
-    border-radius: 18px 18px 24px 24px;
-    box-shadow: 3px 3px 0 rgba(25,25,25,.85);
+    background-image: url('assets/bunny-wave.png');
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-size: 300% 100%;
+    image-rendering: pixelated;
+    filter: drop-shadow(2px 3px 0 rgba(25,25,25,.7));
     transition: opacity .16s ease;
     will-change: transform;
   }
-  .bunny-cursor-follower.is-visible { opacity: 1; }
+  .bunny-cursor-follower.is-visible {
+    opacity: 1;
+    animation: bunny-wave .78s steps(1, end) infinite;
+  }
   .heart-glyph {
     display: block;
     color: #ff62ad;
@@ -372,6 +376,11 @@ h1, h2, h3, .brand, .site-nav a, .section-title, .footer-title {
     0%, 100% { transform: scale(1) rotate(-5deg); }
     45% { transform: scale(1.32) rotate(3deg); }
     70% { transform: scale(.92) rotate(-2deg); }
+  }
+  @keyframes bunny-wave {
+    0%, 24%, 100% { background-position: 0 0; }
+    25%, 49%, 75%, 99% { background-position: 50% 0; }
+    50%, 74% { background-position: 100% 0; }
   }
   @keyframes heart-flash {
     0% { transform: scale(1); filter: brightness(1); }

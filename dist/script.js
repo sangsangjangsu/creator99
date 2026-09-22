@@ -38,10 +38,8 @@ if (finePointer.matches && !reducedMotion.matches) {
   heartCursor.innerHTML = '<span class="heart-glyph">♥︎</span>';
   document.body.appendChild(heartCursor);
 
-  const bunnyFollower = document.createElement('img');
+  const bunnyFollower = document.createElement('div');
   bunnyFollower.className = 'bunny-cursor-follower';
-  bunnyFollower.src = 'assets/bunny-character.jpg';
-  bunnyFollower.alt = '';
   bunnyFollower.setAttribute('aria-hidden', 'true');
   document.body.appendChild(bunnyFollower);
 

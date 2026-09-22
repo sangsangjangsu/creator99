@@ -334,6 +334,42 @@ h1, h2, h3, .brand, .site-nav a, .section-title, .footer-title {
     opacity: 1;
   }
   .bunny-cursor-follower.is-waving { animation: bunny-wave .78s steps(1, end) 1; }
+  .bunny-love-bubble {
+    position: absolute;
+    top: -24px;
+    left: 48px;
+    width: max-content;
+    padding: 5px 9px;
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    background: #fff;
+    color: #ff4fa3;
+    font-family: "SUIT", sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translate(-8px, 7px) scale(.72);
+    transform-origin: left bottom;
+    box-shadow: 2px 2px 0 var(--ink);
+    pointer-events: none;
+  }
+  .bunny-love-bubble::after {
+    content: "";
+    position: absolute;
+    left: 8px;
+    bottom: -6px;
+    width: 8px;
+    height: 8px;
+    border-right: 1.5px solid var(--ink);
+    border-bottom: 1.5px solid var(--ink);
+    background: #fff;
+    transform: rotate(45deg);
+  }
+  .bunny-cursor-follower.is-loving .bunny-love-bubble {
+    animation: bunny-love-pop 1.08s ease-out both;
+  }
   .heart-glyph {
     display: block;
     color: #ff62ad;
@@ -381,6 +417,11 @@ h1, h2, h3, .brand, .site-nav a, .section-title, .footer-title {
     0%, 24%, 100% { background-position: 0 0; }
     25%, 49%, 75%, 99% { background-position: 50% 0; }
     50%, 74% { background-position: 100% 0; }
+  }
+  @keyframes bunny-love-pop {
+    0% { opacity: 0; transform: translate(-8px, 7px) scale(.72); }
+    18%, 72% { opacity: 1; transform: translate(0, 0) scale(1); }
+    100% { opacity: 0; transform: translate(4px, -8px) scale(.92); }
   }
   @keyframes heart-flash {
     0% { transform: scale(1); filter: brightness(1); }

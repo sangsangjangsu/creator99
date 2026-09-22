@@ -41,6 +41,7 @@ if (finePointer.matches && !reducedMotion.matches) {
   const bunnyFollower = document.createElement('div');
   bunnyFollower.className = 'bunny-cursor-follower';
   bunnyFollower.setAttribute('aria-hidden', 'true');
+  bunnyFollower.innerHTML = '<span class="bunny-love-bubble">사랑해 ♥</span>';
   document.body.appendChild(bunnyFollower);
 
   let cursorFrame = 0;
@@ -53,6 +54,7 @@ if (finePointer.matches && !reducedMotion.matches) {
   let lastTrailTime = 0;
   let clickAnimationTimer;
   let bunnyWaveTimer;
+  let bunnyBubbleTimer;
   const pixelColors = ['#ff4fa3', '#ff79ba', '#ff9fc8', '#ffd0e7', '#ffffff'];
 
   function animateBunny() {
@@ -137,12 +139,15 @@ if (finePointer.matches && !reducedMotion.matches) {
     void heartCursor.offsetWidth;
     heartCursor.classList.add('is-clicking');
     bunnyFollower.classList.remove('is-waving');
+    bunnyFollower.classList.remove('is-loving');
     void bunnyFollower.offsetWidth;
-    bunnyFollower.classList.add('is-waving');
+    bunnyFollower.classList.add('is-waving', 'is-loving');
     window.clearTimeout(clickAnimationTimer);
     window.clearTimeout(bunnyWaveTimer);
+    window.clearTimeout(bunnyBubbleTimer);
     clickAnimationTimer = window.setTimeout(() => heartCursor.classList.remove('is-clicking'), 430);
     bunnyWaveTimer = window.setTimeout(() => bunnyFollower.classList.remove('is-waving'), 800);
+    bunnyBubbleTimer = window.setTimeout(() => bunnyFollower.classList.remove('is-loving'), 1100);
   }, { passive: true });
 
   document.addEventListener('mouseleave', () => {

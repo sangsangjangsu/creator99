@@ -743,7 +743,7 @@ h1, h2, h3, .brand, .site-nav a, .section-title, .footer-title { font-weight: 80
 .portal-kicker { display: block; margin-bottom: 4px; font-family: Montserrat, sans-serif; font-size: clamp(.68rem, 1.3vw, .86rem); font-weight: 900; letter-spacing: .22em; }
 .portal-copy strong { display: block; font-size: clamp(2.5rem, 6vw, 5.8rem); font-weight: 900; line-height: .95; letter-spacing: -.065em; }
 .portal-copy p { margin: 13px 0 0; font-size: clamp(.9rem, 1.6vw, 1.14rem); font-weight: 700; }
-.portal-tori { position: absolute; z-index: 4; left: 13%; bottom: -8%; width: clamp(120px, 16vw, 230px); filter: drop-shadow(0 18px 16px rgba(45,32,72,.32)); animation: tori-enter-house 6.5s cubic-bezier(.38,.02,.24,1) both; }
+.portal-tori { position: absolute; z-index: 4; left: 13%; bottom: -8%; display: block; width: clamp(120px, 16vw, 230px); aspect-ratio: 3 / 5; background: url('assets/tori-five-frame-sprite.png') 0 0 / 500% 100% no-repeat; filter: drop-shadow(0 18px 16px rgba(45,32,72,.32)); animation: tori-enter-house 6.5s cubic-bezier(.38,.02,.24,1) both, tori-five-frames 6.5s steps(1,end) both; }
 .portal-signs { position: absolute; right: clamp(18px, 6vw, 90px); bottom: 11%; z-index: 5; width: clamp(220px, 25vw, 340px); height: 280px; animation: sign-arrive 1s .5s cubic-bezier(.22,1,.36,1) both; }
 .portal-signpost { position: absolute; left: 49%; bottom: 0; width: 18px; height: 220px; border-radius: 999px; background: linear-gradient(90deg, #794b2f, #bc8055 48%, #73442c); box-shadow: 0 10px 20px rgba(43,30,54,.28); transform: translateX(-50%); }
 .portal-sign { position: absolute; z-index: 2; display: block; min-width: 140px; padding: 9px 17px; border: 3px solid rgba(255,255,255,.76); border-radius: 16px 6px 16px 6px; color: var(--ink); font-size: clamp(.72rem, 1vw, .88rem); font-weight: 900; text-align: center; box-shadow: 0 10px 22px rgba(46,33,74,.28); }
@@ -766,7 +766,7 @@ h1, h2, h3, .brand, .site-nav a, .section-title, .footer-title { font-weight: 80
 .portal-intro:not(.is-started) .portal-progress span { animation: none; }
 .portal-intro:not(.is-started) .portal-tori { left: 9%; bottom: -10%; opacity: 1; transform: scale(1.14) rotate(-4deg); }
 .portal-intro:not(.is-started) .portal-progress span { width: 0; }
-.portal-intro.is-started .portal-tori { animation-duration: 5.9s; }
+.portal-intro.is-started .portal-tori { animation-duration: 5.9s, 5.9s; }
 .portal-intro.is-started .portal-progress span { animation: portal-progress 10.8s linear both; }
 
 .portal-world-arrow { position: absolute; top: 38%; left: clamp(16px, 4vw, 68px); z-index: 6; width: clamp(250px, 24vw, 350px); filter: drop-shadow(0 18px 18px rgba(47,29,91,.3)); transform: rotate(-4deg); transition: opacity .4s; }
@@ -818,13 +818,21 @@ h1, h2, h3, .brand, .site-nav a, .section-title, .footer-title { font-weight: 80
 @keyframes portal-camera { 0% { transform: scale(1.12); } 70%,100% { transform: scale(1.03); } }
 @keyframes portal-copy-out { 0% { opacity: 0; transform: translate(-50%,-18px); } 12%,62% { opacity: 1; transform: translate(-50%,0); } 78%,100% { opacity: 0; transform: translate(-50%,-15px); } }
 @keyframes tori-enter-house {
-  0% { left: 9%; bottom: -10%; opacity: 0; transform: scale(1.14) rotate(-4deg); }
-  8% { opacity: 1; }
-  24% { left: 22%; bottom: 1%; transform: scale(1) rotate(4deg); }
-  42% { left: 34%; bottom: 9%; transform: scale(.82) rotate(-3deg); }
-  62% { left: 44%; bottom: 20%; transform: scale(.6) rotate(3deg); }
-  82% { left: 48.2%; bottom: 33%; opacity: 1; transform: scale(.34) rotate(-2deg); }
+  0% { left: 9%; bottom: -10%; opacity: 1; transform: scale(1.14) rotate(-4deg); }
+  14% { left: 9%; bottom: -10%; transform: scale(1.14) rotate(0); }
+  27% { left: 9%; bottom: -10%; transform: scale(1.14) translateY(-5px) rotate(2deg); }
+  42% { left: 22%; bottom: 1%; transform: scale(1) rotate(4deg); }
+  62% { left: 34%; bottom: 9%; transform: scale(.82) rotate(-3deg); }
+  80% { left: 44%; bottom: 20%; transform: scale(.6) rotate(3deg); }
+  93% { left: 48.2%; bottom: 33%; opacity: 1; transform: scale(.34) rotate(-2deg); }
   100% { left: 49.1%; bottom: 41%; opacity: 0; transform: scale(.08) rotate(0); }
+}
+@keyframes tori-five-frames {
+  0%,14% { background-position: 0 0; }
+  15%,27% { background-position: 25% 0; }
+  28%,42% { background-position: 50% 0; }
+  43%,65% { background-position: 75% 0; }
+  66%,100% { background-position: 100% 0; }
 }
 @keyframes sign-arrive { from { opacity: 0; transform: translateY(28px) rotate(2deg); } to { opacity: 1; transform: none; } }
 @keyframes portal-progress { from { width: 0; } to { width: 100%; } }

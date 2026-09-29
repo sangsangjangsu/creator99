@@ -3,6 +3,7 @@ const portalIntro = document.querySelector('.portal-intro');
 
 if (portalIntro) {
   const portalSkip = portalIntro.querySelector('.portal-skip');
+  const portalStart = portalIntro.querySelector('.portal-start');
   const reducedEntranceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let portalTimer;
 
@@ -19,8 +20,80 @@ if (portalIntro) {
     }, reducedEntranceMotion ? 10 : 720);
   }
 
+  async function playPortalMelody() {
+    const ready = await ensureAudio();
+    if (!ready || !audioContext || !masterGain) return;
+    portalIntro.dataset.audio = 'playing';
+
+    const melody = [523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 880, 783.99, 659.25, 587.33, 523.25, 659.25, 783.99, 1046.5];
+    const start = audioContext.currentTime + .08;
+
+    melody.forEach((frequency, index) => {
+      const noteTime = start + index * .48;
+      const oscillator = audioContext.createOscillator();
+      const harmony = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      const filter = audioContext.createBiquadFilter();
+
+      oscillator.type = 'sine';
+      harmony.type = 'triangle';
+      oscillator.frequency.setValueAtTime(frequency, noteTime);
+      harmony.frequency.setValueAtTime(frequency / 2, noteTime);
+      filter.type = 'lowpass';
+      filter.frequency.value = 1450;
+      gain.gain.setValueAtTime(.0001, noteTime);
+      gain.gain.exponentialRampToValueAtTime(.045, noteTime + .08);
+      gain.gain.exponentialRampToValueAtTime(.0001, noteTime + .7);
+
+      oscillator.connect(filter);
+      harmony.connect(filter);
+      filter.connect(gain).connect(masterGain);
+      oscillator.start(noteTime);
+      harmony.start(noteTime);
+      oscillator.stop(noteTime + .74);
+      harmony.stop(noteTime + .74);
+    });
+
+    // 토리의 걸음과 맞물리는 짧고 맑은 “뿅뿅” 점프음
+    [0, .82, 1.64, 2.48, 3.32, 4.18, 5.02].forEach((offset, index) => {
+      const hopTime = start + offset;
+      const hop = audioContext.createOscillator();
+      const sparkle = audioContext.createOscillator();
+      const hopGain = audioContext.createGain();
+      const hopFilter = audioContext.createBiquadFilter();
+
+      hop.type = 'sine';
+      sparkle.type = 'triangle';
+      hop.frequency.setValueAtTime(index % 2 ? 410 : 460, hopTime);
+      hop.frequency.exponentialRampToValueAtTime(index % 2 ? 760 : 840, hopTime + .09);
+      hop.frequency.exponentialRampToValueAtTime(330, hopTime + .24);
+      sparkle.frequency.setValueAtTime(index % 2 ? 1040 : 1180, hopTime + .025);
+      sparkle.frequency.exponentialRampToValueAtTime(720, hopTime + .2);
+      hopFilter.type = 'lowpass';
+      hopFilter.frequency.value = 1900;
+      hopGain.gain.setValueAtTime(.0001, hopTime);
+      hopGain.gain.exponentialRampToValueAtTime(.075, hopTime + .025);
+      hopGain.gain.exponentialRampToValueAtTime(.0001, hopTime + .28);
+
+      hop.connect(hopFilter);
+      sparkle.connect(hopFilter);
+      hopFilter.connect(hopGain).connect(masterGain);
+      hop.start(hopTime);
+      sparkle.start(hopTime + .025);
+      hop.stop(hopTime + .3);
+      sparkle.stop(hopTime + .24);
+    });
+  }
+
+  portalStart?.addEventListener('click', () => {
+    if (portalIntro.classList.contains('is-started')) return;
+    portalIntro.classList.add('is-started');
+    portalStart.setAttribute('aria-disabled', 'true');
+    playPortalMelody();
+    portalTimer = window.setTimeout(closePortal, reducedEntranceMotion ? 1800 : 11200);
+  });
+
   portalSkip?.addEventListener('click', closePortal);
-  portalTimer = window.setTimeout(closePortal, reducedEntranceMotion ? 600 : 6500);
 }
 
 // 모바일 화면의 메뉴 열기·닫기 기능

@@ -1,6 +1,46 @@
+// 홈 첫 진입 시 토리가 상상의 집으로 걸어가는 입장 애니메이션
+const portalIntro = document.querySelector('.portal-intro');
+
+if (portalIntro) {
+  const portalSkip = portalIntro.querySelector('.portal-skip');
+  const reducedEntranceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let portalTimer;
+
+  document.body.classList.add('portal-active');
+
+  function closePortal() {
+    if (portalIntro.classList.contains('is-complete')) return;
+    window.clearTimeout(portalTimer);
+    portalIntro.classList.add('is-leaving');
+    window.setTimeout(() => {
+      portalIntro.classList.add('is-complete');
+      portalIntro.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('portal-active');
+    }, reducedEntranceMotion ? 10 : 720);
+  }
+
+  portalSkip?.addEventListener('click', closePortal);
+  portalTimer = window.setTimeout(closePortal, reducedEntranceMotion ? 600 : 6500);
+}
+
 // 모바일 화면의 메뉴 열기·닫기 기능
 const menuButton = document.querySelector('.menu-toggle');
 const navigation = document.querySelector('.site-nav');
+
+// 외부 서비스가 frame-ancestors 정책으로 차단되면 현재 구성을 담은 정적 미리보기를 표시
+const serviceFrame = document.querySelector('.phone-screen iframe');
+
+if (serviceFrame) {
+  window.setTimeout(() => {
+    try {
+      const frameDocument = serviceFrame.contentDocument;
+      const hasFrameContent = frameDocument?.body && frameDocument.body.children.length > 0;
+      if (!hasFrameContent) serviceFrame.closest('.phone-screen')?.classList.add('show-fallback');
+    } catch {
+      // 정상적인 cross-origin 문서는 내부 접근이 차단되므로 iframe을 그대로 유지한다.
+    }
+  }, 2200);
+}
 
 if (menuButton && navigation) {
   menuButton.addEventListener('click', () => {
